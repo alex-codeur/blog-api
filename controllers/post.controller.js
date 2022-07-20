@@ -2,6 +2,8 @@ const PostModel = require('../models/post.model');
 const UserModel = require('../models/user.model');
 const ObjectID = require('mongoose').Types.ObjectId;
 
+const fs = require('fs');
+
 module.exports.getAllPosts = async (req, res) => {
     try {
         const posts = await PostModel.find({});
@@ -23,10 +25,12 @@ module.exports.getSinglePost = async (req, res) => {
 };
 
 module.exports.createPost = async (req, res) => {
-    const newPost = new PostModel(req.body);
+    const newPost = req.body;
+    const imageName = req.file.filename;
+    newPost.photo = imageName;
 
     try {
-        const savedPost = await newPost.save();
+        const savedPost = await PostModel.create(newPost);
 
         res.status(200).json(savedPost);
     } catch(err) {
@@ -35,17 +39,29 @@ module.exports.createPost = async (req, res) => {
 };
 
 module.exports.updatePost = async (req, res) => {
+    const id = req.params.id;
+    let new_image = "";
+
+    if (req.file) {
+        new_image = req.file.filename;
+
+        try {
+            fs.unlinkSync("./uploads/" + req.body.old_image);
+        } catch(err) {
+            res.status(500).json(err);
+        }
+    } else {
+        new_image = req.body.old_image;
+    }
+
+    const updatedPost = req.body;
+    updatedPost.photo = new_image;
+
     try {
-        const updatedPost = await PostModel.findByIdAndUpdate(
-            req.params.id,
-            {
-                $set: req.body,
-            },
-            { new: true }
-        );
+        await PostModel.findByIdAndUpdate(id, updatedPost);
 
         res.status(200).json(updatedPost);
-    } catch(err) {
+    } catch (err) {
         res.status(500).json(err);
     }
 };
