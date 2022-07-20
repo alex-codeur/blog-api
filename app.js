@@ -1,6 +1,7 @@
 //imports
 const userRoutes = require('./routes/user.routes');
 const postRoutes = require('./routes/post.routes');
+const categoryRoutes = require('./routes/category.routes');
 const { checkUser, requireAuth } = require('./middleware/auth.middleware');
 
 // database
@@ -28,6 +29,7 @@ app.use('/jwtid', requireAuth, (req, res) => {
 //  routers
 app.use('/api/user', userRoutes);
 app.use('/api/post', postRoutes);
+app.use('/api/category', categoryRoutes);
 
 // server
 const port = process.env.PORT || 5000;
