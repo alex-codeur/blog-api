@@ -11,10 +11,10 @@ const createToken = (id) => {
 };
 
 module.exports.signUp = async (req, res) => {
-    const { pseudo, email, password } = req.body;
+    const { pseudo, email, password, role } = req.body;
 
     try {
-        const user = await UserModel.create({ pseudo, email, password });
+        const user = await UserModel.create({ pseudo, email, password, role });
 
         res.status(201).json({ user: user });
     } catch(err) {
