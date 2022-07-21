@@ -10,6 +10,7 @@ require('dotenv').config({ path: './config/.env' });
 
 // packages
 const express = require('express');
+const path = require('path');
 const app = express();
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
@@ -31,6 +32,9 @@ app.use('/jwtid', requireAuth, (req, res) => {
 app.use('/api/user', userRoutes);
 app.use('/api/post', postRoutes);
 app.use('/api/category', categoryRoutes);
+
+// pour acceder aux images du dossier images
+app.use('/api/images', express.static(path.join(__dirname, "uploads")));
 
 // server
 const port = process.env.PORT || 5000;
