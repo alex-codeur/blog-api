@@ -67,8 +67,17 @@ module.exports.updatePost = async (req, res) => {
 };
 
 module.exports.deletePost = async (req, res) => {
+    const id = req.params.id;
+
     try {
-        await PostModel.deleteOne();
+        const result = await PostModel.findByIdAndDelete(id);
+        if (result.photo != '') {
+            try {
+                fs.unlinkSync('./uploads/' + result.photo);
+            } catch(err) {
+                console.log(err)
+            }
+        }
 
         res.status(200).json("Post has been deleted...");
     } catch(err) {
