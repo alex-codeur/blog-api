@@ -6,7 +6,7 @@ const fs = require('fs');
 
 module.exports.getAllPosts = async (req, res) => {
     try {
-        const posts = await PostModel.find({});
+        const posts = await PostModel.find({}).sort({createdAt: -1});
 
         res.status(200).json(posts);
     } catch(err) {
