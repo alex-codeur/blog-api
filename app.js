@@ -3,6 +3,8 @@ const userRoutes = require('./routes/user.routes');
 const postRoutes = require('./routes/post.routes');
 const categoryRoutes = require('./routes/category.routes');
 const { checkUser, requireAuth } = require('./middleware/auth.middleware');
+const paginate = require("express-paginate");
+const passport = require("passport");
 
 // database
 const connectDB = require('./config/connect');
@@ -21,6 +23,8 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(passport.initialize());
+app.use(paginate.middleware(process.env.LIMIT, process.env.MAX_LIMIT));
 
 // jwt
 app.use('*', checkUser);
