@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema(
             lowercase: true,
             trim: true
         },
+        image: {
+            type: String,
+            required: true,
+        },
         password: {
             type: String,
             required: [true, 'Please provide password'],
@@ -34,6 +38,16 @@ const userSchema = new mongoose.Schema(
             default: "user",
             enum: ["user", "admin"]
         },
+        verificationCode: {
+            type: Number,
+        },
+        isEmailVerified: {
+            type: Boolean,
+            default: false,
+        },
+        passwordResetCode: {
+            type: String,
+        }
     },
     {
         timestamps: true,
