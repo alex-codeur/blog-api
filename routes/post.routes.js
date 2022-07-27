@@ -19,7 +19,9 @@ const upload = multer({
 }).single("photo");
 
 router.get('/', postController.getAllPosts);
+router.get('/top', postController.getTopPosts);
 router.get('/:id', postController.getSinglePost);
+router.get('/slug/:slug', postController.getSinglePostBySlug);
 router.post('/', upload, postController.createPost);
 router.put('/:id', upload, postController.updatePost);
 router.delete('/:id', postController.deletePost);

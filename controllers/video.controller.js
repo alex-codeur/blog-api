@@ -1,20 +1,18 @@
-const PostModel = require('../models/post.model');
-const CommentModel = require('../models/comment.model');
+const VideoModel = require('../models/video.model');
 const paginate = require("express-paginate");
 const fs = require('fs');
 
-module.exports.getAllPosts = async (req, res) => {
+module.exports.getAllVideos = async (req, res) => {
     try {
         // const posts = await PostModel.find({}).sort({createdAt: -1});
         const [results, itemCount] = await Promise.all([
-            PostModel.find({})
-                .populate("category", "title")
+            VideoModel.find({})
                 .sort({ createdAt: -1 })
                 .limit(req.query.limit)
                 .skip(req.skip)
                 .lean()
                 .exec(),
-            PostModel.count({})
+            VideoModel.count({})
         ]);
 
         const pageCount = Math.ceil(itemCount / req.query.limit);
@@ -37,21 +35,19 @@ module.exports.getAllPosts = async (req, res) => {
     }
 };
 
-module.exports.getSinglePost = async (req, res) => {
+module.exports.getSingleVideo = async (req, res) => {
     try {
         // const post = await PostModel.findById(req.params.id);
-        let post = await PostModel.findByIdAndUpdate(req.params.id, {
+        let video = await VideoModel.findByIdAndUpdate(req.params.id, {
             $inc: { viewsCount: 1 },
-        }).populate("category", "title");
+        });
 
-        if (post) {
-            post.comments = await CommentModel.find({ post: post._id });
-            
-            return res.status(200).json(post);
+        if (video) {
+            return res.status(200).json(video);
         }
 
         return res.status(404).json({
-            message: "Post not found",
+            message: "Video not found",
             success: false,
         });
     } catch(err) {
@@ -62,47 +58,21 @@ module.exports.getSinglePost = async (req, res) => {
     }
 };
 
-module.exports.getSinglePostBySlug = async (req, res) => {
-    try {
-        // const post = await PostModel.findById(req.params.id);
-        let post = await PostModel.findByIdAndUpdate(req.params.slug, {
-            $inc: { viewsCount: 1 },
-        }).populate("category", "title");
-
-        if (post) {
-            post.comments = await CommentModel.find({ post: post._id });
-            
-            return res.status(200).json(post);
-        }
-
-        return res.status(404).json({
-            message: "Post not found",
-            success: false,
-        });
-    } catch(err) {
-        return res.status(500).json({
-            message: err.message,
-            success: false
-        });
-    }
-};
-
-module.exports.createPost = async (req, res) => {
-    const newPost = req.body;
-    newPost.slug = this.generateSlug(newPost.title);
+module.exports.createVideo = async (req, res) => {
+    const newVideo = req.body;
     const imageName = req.file.filename;
-    newPost.photo = imageName;
+    newVideo.photo = imageName;
 
     try {
-        const savedPost = await PostModel.create(newPost);
+        const savedVideo = await VideoModel.create(newVideo);
 
-        res.status(200).json(savedPost);
+        res.status(200).json(savedVideo);
     } catch(err) {
         res.status(500).json(err);
     }
 };
 
-module.exports.updatePost = async (req, res) => {
+module.exports.updateVideo = async (req, res) => {
     const id = req.params.id;
     let new_image = "";
 
@@ -118,11 +88,11 @@ module.exports.updatePost = async (req, res) => {
         new_image = req.body.old_image;
     }
 
-    const updatedPost = req.body;
-    updatedPost.photo = new_image;
+    const updatedVideo = req.body;
+    updatedVideo.photo = new_image;
 
     try {
-        await PostModel.findByIdAndUpdate(id, updatedPost);
+        await VideoModel.findByIdAndUpdate(id, updatedVideo);
 
         res.status(200).json(updatedPost);
     } catch (err) {
@@ -130,11 +100,11 @@ module.exports.updatePost = async (req, res) => {
     }
 };
 
-module.exports.deletePost = async (req, res) => {
+module.exports.deleteVideo = async (req, res) => {
     const id = req.params.id;
 
     try {
-        const result = await PostModel.findByIdAndDelete(id);
+        const result = await VideoModel.findByIdAndDelete(id);
         if (result.photo != '') {
             try {
                 fs.unlinkSync('./uploads/' + result.photo);
@@ -143,17 +113,16 @@ module.exports.deletePost = async (req, res) => {
             }
         }
 
-        res.status(200).json("Post has been deleted...");
+        res.status(200).json("Video has been deleted...");
     } catch(err) {
         res.status(500).json(err);
     }
 };
 
-module.exports.getTopPosts = async (req, res) => {
+module.exports.getTopVideos = async (req, res) => {
     try {
         // const posts = await PostModel.find({}).sort({createdAt: -1});
-        const results = await PostModel.find({})
-        .populate("category", "title")
+        const results = await VideoModel.find({})
         .sort({ createdAt: -1 })
         .limit(4)
         .lean()
@@ -169,16 +138,3 @@ module.exports.getTopPosts = async (req, res) => {
         });
     }
 };
-
-module.exports.generateSlug = (title) => {
-    const slugText = title.toString()
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w\-]+/g, "")
-    .replace(/\-\-+/g, "-")
-    .replace(/^-+/, "")
-    .replace(/-+$/, "");
-
-    return slugText;
-}
