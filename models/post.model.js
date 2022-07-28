@@ -34,17 +34,24 @@ const PostSchema = new mongoose.Schema(
             type: String,
             required: true
         },
-        comments: [{
-            type: Schema.Types.ObjectId,
-            ref: "comment",
-        }],
+        comments: {
+            type: [
+                {
+                    commenterId: String,
+                    commenterPseudo: String,
+                    text: String,
+                    timestamp: Number,
+                }
+            ],
+            required: true,
+        },
         createdBy: {
             type: Schema.Types.ObjectId,
             ref: "user",
         },
     },
     {
-        timestamps: true
+        timestamps: true,
     }
 );
 

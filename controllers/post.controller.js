@@ -1,5 +1,4 @@
 const PostModel = require('../models/post.model');
-const CommentModel = require('../models/comment.model');
 const paginate = require("express-paginate");
 const fs = require('fs');
 
@@ -39,10 +38,10 @@ module.exports.getAllPosts = async (req, res) => {
 
 module.exports.getSinglePost = async (req, res) => {
     try {
-        // const post = await PostModel.findById(req.params.id);
-        let post = await PostModel.findByIdAndUpdate(req.params.id, {
-            $inc: { viewsCount: 1 },
-        }).populate("category", "title");
+        const post = await PostModel.findById(req.params.id);
+        // let post = await PostModel.findByIdAndUpdate(req.params.id, {
+        //     $inc: { viewsCount: 1 },
+        // }).populate("category", "title");
 
         if (post) {
             post.comments = await CommentModel.find({ post: post._id });
@@ -155,7 +154,7 @@ module.exports.getTopPosts = async (req, res) => {
         const results = await PostModel.find({})
         .populate("category", "title")
         .sort({ createdAt: -1 })
-        .limit(4)
+        .limit(6)
         .lean()
         .exec();
 
@@ -182,3 +181,71 @@ module.exports.generateSlug = (title) => {
 
     return slugText;
 }
+
+module.exports.commentPost = (req, res) => {
+    try {
+        return PostModel.findByIdAndUpdate(
+            req.params.id,
+            {
+                $push: {
+                    comments: {
+                        commenterId: req.body.commenterId,
+                        commenterPseudo: req.body.commenterPseudo,
+                        text: req.body.text,
+                        timestamp: new Date().getTime()
+                    }
+                }
+            },
+            { new: true },
+            (err, docs) => {
+                if (!err) return res.send(docs);
+                else return res.status(400).send(err);
+            }
+        );
+    } catch (err) {
+        return res.status(400).send(err);
+    }
+};
+
+module.exports.editCommentPost = (req, res) => {
+    try {
+        return PostModel.findById(
+            req.params.id,
+            (err, docs) => {
+                const theComment = docs.comments.find((comment) => comment._id.equals(req.body.commentId));
+
+                if (!theComment) return res.status(404).send('Comment not found')
+                theComment.text = req.body.text;
+
+                return docs.save((err) => {
+                    if (!err) return res.status(200).send(docs);
+                    return res.status(500).send(err);
+                });
+            }
+        );
+    } catch (err) {
+        return res.status(400).send(err);
+    }
+};
+
+module.exports.deleteCommentPost = (req, res) => {
+    try {
+        return PostModel.findByIdAndUpdate(
+            req.params.id,
+            {
+                $pull: {
+                    comments: {
+                        _id: req.body.commentId,
+                    }
+                }
+            },
+            { new: true },
+            (err, docs) => {
+                if (!err) return res.send(docs);
+                else return res.status(400).send(err);
+            }
+        );
+    } catch (err) {
+        return res.status(400).send(err);
+    }
+};
