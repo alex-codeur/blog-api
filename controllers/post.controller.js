@@ -44,8 +44,6 @@ module.exports.getSinglePost = async (req, res) => {
         // }).populate("category", "title");
 
         if (post) {
-            post.comments = await CommentModel.find({ post: post._id });
-            
             return res.status(200).json(post);
         }
 

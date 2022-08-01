@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema(
     {
         pseudo: {
             type: String,
-            required: [true, 'Please provide name'],
+            required: [true, 'Please provide pseudo'],
             minlength: 3,
             maxlength: 50,
             unique: true,
